@@ -194,11 +194,15 @@
 <div class="overlay" id="confirm-modal">
   <div class="modal">
     <h2>📦 Conferma consegna</h2>
-    <p>Stai per consegnare i seguenti router. Verrà aperto Outlook con la mail precompilata pronta all'invio.</p>
+    <p>Stai per consegnare i seguenti apparati. Verrà aperto il client mail con la mail precompilata.</p>
     <div class="modal-list" id="modal-list"></div>
+    <div class="form-group" style="margin-bottom:20px">
+      <label style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.07em;text-transform:uppercase;font-weight:600;display:block;margin-bottom:8px">LDV — Lettera di vettura <span style="color:var(--muted);font-weight:400;font-size:10px">(opzionale)</span></label>
+      <input type="text" id="input-ldv" placeholder="es. 12345678" autocomplete="off" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:16px;padding:12px 14px;outline:none;width:100%">
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Annulla</button>
-      <button class="btn btn-blue" onclick="confirmConsegna()" id="confirm-btn">✉️ Apri in Outlook</button>
+      <button class="btn btn-blue" onclick="confirmConsegna()" id="confirm-btn">✉️ Invia mail</button>
     </div>
   </div>
 </div>
@@ -238,7 +242,7 @@
         <button class="btn btn-ghost" style="padding:12px 18px;font-size:13px" onclick="addNewModel()">+ Aggiungi</button>
       </div>
 
-      <button class="btn btn-primary" onclick="addRouter()">+ Aggiungi router</button>
+      <button class="btn btn-primary" onclick="addRouter()">+ Aggiungi apparato</button>
     </div>
 
     <div class="section-header" style="margin-top:32px"><span class="section-title">In magazzino</span><div class="section-line"></div></div>
@@ -249,7 +253,7 @@
         </tr></thead>
         <tbody id="ritiro-preview-tbody"></tbody>
       </table>
-      <div id="ritiro-preview-empty" class="empty-state"><div class="empty-icon">📦</div><p>Nessun router in magazzino</p></div>
+      <div id="ritiro-preview-empty" class="empty-state"><div class="empty-icon">📦</div><p>Nessun apparato in magazzino</p></div>
     </div>
   </main>
 </div>
@@ -257,7 +261,7 @@
 <!-- ══════════════ TAB CONSEGNA ══════════════ -->
 <div class="tab-content" id="tab-consegna">
   <main>
-    <div class="section-header"><span class="section-title">Seleziona router da consegnare</span><div class="section-line"></div></div>
+    <div class="section-header"><span class="section-title">Seleziona apparati da consegnare</span><div class="section-line"></div></div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="router-table" id="consegna-table">
         <thead><tr>
@@ -266,12 +270,12 @@
         </tr></thead>
         <tbody id="consegna-tbody"></tbody>
       </table>
-      <div id="consegna-empty" class="empty-state" style="display:none"><div class="empty-icon">📭</div><p>Nessun router in magazzino</p></div>
+      <div id="consegna-empty" class="empty-state" style="display:none"><div class="empty-icon">📭</div><p>Nessun apparato in magazzino</p></div>
     </div>
   </main>
   <div class="action-bar">
-    <div class="selected-count"><span id="sel-count">0</span> router selezionati</div>
-    <button class="btn btn-blue" onclick="openModal()" id="consegna-btn" disabled>✉️ Consegna selezionati</button>
+    <div class="selected-count"><span id="sel-count">0</span> apparati selezionati</div>
+    <button class="btn btn-blue" onclick="openModal()" id="consegna-btn" disabled>✉️ ✉️ Consegna selezionati</button>
   </div>
 </div>
 
@@ -279,10 +283,15 @@
 <div class="tab-content" id="tab-storico">
   <main>
     <div class="section-header"><span class="section-title">Storico consegne</span><div class="section-line"></div></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+      <input type="text" id="storico-search" placeholder="🔍 Cerca per seriale, modello, LDV..." oninput="renderStorico()" style="flex:1;min-width:200px;background:white;border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:14px;padding:11px 14px;outline:none">
+      <button class="btn btn-ghost" style="padding:11px 16px;font-size:12px" onclick="exportStoricoCSV()">⬇ CSV</button>
+      <button class="btn btn-ghost" style="padding:11px 16px;font-size:12px" onclick="exportStoricoPDF()">⬇ PDF</button>
+    </div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="router-table" id="storico-table">
         <thead><tr>
-          <th>Seriale</th><th>PIN</th><th>Modello</th><th>Stato</th><th>Ritirato il</th><th>Consegnato il</th>
+          <th>Modello</th><th>Seriale</th><th>PIN</th><th>Stato</th><th>LDV</th><th>Ritirato il</th><th>Consegnato il</th>
         </tr></thead>
         <tbody id="storico-tbody"></tbody>
       </table>
@@ -307,7 +316,7 @@
         <h3>✏️ Oggetto mail</h3>
         <div class="form-group" style="margin-bottom:14px">
           <label>Oggetto</label>
-          <input type="text" id="mail-subject" placeholder="Consegna router - {data}" oninput="saveSettings()">
+          <input type="text" id="mail-subject" placeholder="Consegna apparati - {data}" oninput="saveSettings()">
           <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">{data} = data odierna</span>
         </div>
         <div class="divider"></div>
@@ -360,7 +369,7 @@ let state = {
   models: [],   // { name, count }
   settings: {
     recipients: ['', ''],
-    mailSubject: 'Consegna router - {data}'
+    mailSubject: 'Consegna apparati - {data}'
   }
 };
 
@@ -368,7 +377,7 @@ function loadState() {
   try { const s = localStorage.getItem('routerMgr2'); if (s) state = JSON.parse(s); } catch(e){}
   // Ensure arrays exist
   if (!state.models) state.models = [];
-  if (!state.settings) state.settings = { recipients: ['',''], mailSubject: 'Consegna router - {data}' };
+  if (!state.settings) state.settings = { recipients: ['',''], mailSubject: 'Consegna apparati - {data}' };
 }
 function saveState() { localStorage.setItem('routerMgr2', JSON.stringify(state)); }
 
@@ -395,7 +404,7 @@ function refreshModelSelect() {
   getModelsSorted().forEach(m => {
     const opt = document.createElement('option');
     opt.value = m.name;
-    opt.textContent = m.name + (m.count > 1 ? ` (×${m.count})` : '');
+    opt.textContent = m.name;
     sel.appendChild(opt);
   });
   if (current && state.models.find(m => m.name === current)) sel.value = current;
@@ -460,11 +469,11 @@ function addRouter() {
   document.getElementById('input-guasto').checked = false;
   updateGuastoToggle();
   document.getElementById('input-serial').focus();
-  showToast('Router aggiunto ✓');
+  showToast('Apparato aggiunto ✓');
 }
 
 function deleteRouter(id) {
-  if (!confirm('Rimuovere questo router dal magazzino?')) return;
+  if (!confirm('Rimuovere questo apparato dal magazzino?')) return;
   const r = state.routers.find(r => r.id === id);
   if (r) {
     state.routers = state.routers.filter(x => x.id !== id);
@@ -541,7 +550,13 @@ function getSelected() { return [...document.querySelectorAll('.router-cb:checke
 
 // ── RENDER STORICO ─────────────────────────────────────
 function renderStorico() {
-  const delivered = state.routers.filter(r => r.deliveredAt).sort((a,b) => b.id - a.id);
+  const q = (document.getElementById('storico-search')?.value || '').toLowerCase();
+  let delivered = state.routers.filter(r => r.deliveredAt).sort((a,b) => b.id - a.id);
+  if (q) delivered = delivered.filter(r =>
+    r.serial.toLowerCase().includes(q) ||
+    r.model.toLowerCase().includes(q) ||
+    (r.ldv || '').toLowerCase().includes(q)
+  );
   const tbody = document.getElementById('storico-tbody');
   const empty = document.getElementById('storico-empty');
   const table = document.getElementById('storico-table');
@@ -549,13 +564,75 @@ function renderStorico() {
   empty.style.display='none'; table.style.display='';
   tbody.innerHTML = delivered.map(r => `
     <tr>
+      <td class="model-cell">${r.model}</td>
       <td class="serial-cell">${r.serial}</td>
       <td class="pin-cell">${r.pin}</td>
-      <td class="model-cell">${r.model}</td>
       <td>${r.guasto ? '<span class="guasto-badge">⚠ GUASTO</span>' : '<span style="color:var(--muted);font-size:11px;font-family:var(--mono)">OK</span>'}</td>
+      <td style="color:var(--accent2);font-size:12px;font-family:var(--mono)">${r.ldv || '—'}</td>
       <td style="color:var(--muted);font-size:12px">${r.pickedAt}</td>
       <td style="color:var(--accent2);font-size:12px">${r.deliveredAt}</td>
     </tr>`).join('');
+}
+
+function exportStoricoCSV() {
+  const delivered = state.routers.filter(r => r.deliveredAt);
+  if (!delivered.length) { showToast('Nessuna consegna da esportare', 'warning'); return; }
+  const header = 'MODELLO;SERIALE;PIN;STATO;LDV;RITIRATO IL;CONSEGNATO IL';
+  const rows = delivered.map(r => [r.model, r.serial, r.pin, r.guasto?'GUASTO':'OK', r.ldv||'', r.pickedAt, r.deliveredAt].join(';'));
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  a.download = `StoricoConsegne_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}.csv`;
+  a.href = url; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  showToast('✅ CSV esportato');
+}
+
+function exportStoricoPDF() {
+  const delivered = state.routers.filter(r => r.deliveredAt);
+  if (!delivered.length) { showToast('Nessuna consegna da esportare', 'warning'); return; }
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const dateStr = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`;
+  const thS = 'background:#4f6ef7;color:white;padding:8px 10px;font-size:11px;text-align:left;font-family:Arial,sans-serif';
+  const tdS = 'padding:7px 10px;font-size:11px;border-bottom:1px solid #eee;font-family:Arial,sans-serif';
+  const rows = delivered.map((r,i) =>
+    `<tr style="background:${i%2===0?'#fff':'#f8faff'}">
+      <td style="${tdS}">${r.model}</td>
+      <td style="${tdS};font-family:monospace">${r.serial}</td>
+      <td style="${tdS};font-family:monospace;color:#4f6ef7;font-weight:bold">${r.pin}</td>
+      <td style="${tdS};color:${r.guasto?'#c05000':'#008050'};font-weight:bold">${r.guasto?'GUASTO':'OK'}</td>
+      <td style="${tdS}">${r.ldv||'—'}</td>
+      <td style="${tdS}">${r.pickedAt}</td>
+      <td style="${tdS}">${r.deliveredAt}</td>
+    </tr>`).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Storico Consegne</title>
+    <style>@media print{body{margin:0}}</style>
+  </head><body style="font-family:Arial,sans-serif;padding:20px">
+    <div style="background:#4f6ef7;padding:16px 20px;margin-bottom:16px">
+      <div style="color:white;font-size:18px;font-weight:bold">Storico Consegne Apparati</div>
+      <div style="color:#ccd4ff;font-size:12px">Esportato il ${dateStr} — ${delivered.length} consegne</div>
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+      <thead><tr>
+        <th style="${thS}">MODELLO</th><th style="${thS}">SERIALE</th><th style="${thS}">PIN</th>
+        <th style="${thS}">STATO</th><th style="${thS}">LDV</th><th style="${thS}">RITIRATO</th><th style="${thS}">CONSEGNATO</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top:16px;font-size:10px;color:#888;border-top:1px solid #eee;padding-top:10px">
+      ${APP_NAME} ${APP_VERSION} — Created by Daniele Mariani &amp; Claude Strife Sonnet
+    </div>
+    <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
 // ── BADGE ──────────────────────────────────────────────
@@ -575,28 +652,29 @@ function openModal() {
     </div>`).join('');
   document.getElementById('confirm-modal').classList.add('open');
 }
-function closeModal() { document.getElementById('confirm-modal').classList.remove('open'); pendingIds = []; }
+function closeModal() { document.getElementById('confirm-modal').classList.remove('open'); pendingIds = []; const ldvEl = document.getElementById('input-ldv'); if (ldvEl) ldvEl.value = ''; }
 
 function confirmConsegna() {
   const routers = state.routers.filter(r => pendingIds.includes(String(r.id)));
-  const ok = openOutlookMail(routers);
+  const ldv = (document.getElementById('input-ldv').value || '').trim();
+  const ok = openOutlookMail(routers, ldv);
   if (ok) {
     const today = new Date().toLocaleDateString('it-IT');
-    pendingIds.forEach(id => { const r = state.routers.find(r => String(r.id) === id); if (r) r.deliveredAt = today; });
+    pendingIds.forEach(id => { const r = state.routers.find(r => String(r.id) === id); if (r) { r.deliveredAt = today; if (ldv) r.ldv = ldv; } });
     saveState(); renderAll(); renderConsegna();
     closeModal();
-    showToast(`✅ Outlook aperto — ${routers.length} router segnati come consegnati`);
+    showToast(`✅ Mail aperta — ${routers.length} apparati segnati come consegnati`);
   }
 }
 
 // ── OUTLOOK MAIL ───────────────────────────────────────
-function openOutlookMail(routers) {
+function openOutlookMail(routers, ldv) {
   const s = state.settings;
   const recipients = s.recipients.filter(r => r.trim());
   if (!recipients.length) { showToast('Aggiungi almeno un destinatario nelle impostazioni', 'error'); return false; }
 
   const today = new Date().toLocaleDateString('it-IT');
-  const subject = (s.mailSubject || 'Consegna router - {data}').replace('{data}', today);
+  const subject = (s.mailSubject || 'Consegna apparati - {data}').replace('{data}', today);
 
   const thStyle = 'padding:10px 14px;text-align:left;font-size:11px;color:#555;text-transform:uppercase;background:#e8eeff;border-bottom:2px solid #c0c8f0;font-family:Arial,sans-serif';
   const tdBase = 'padding:10px 14px;border-bottom:1px solid #eaecf8;font-family:Arial,sans-serif;font-size:13px';
@@ -618,8 +696,8 @@ function openOutlookMail(routers) {
 <body style="margin:0;padding:20px;background:#f0f4ff;font-family:Arial,sans-serif">
 <div style="max-width:580px;margin:0 auto;background:white;border:1px solid #c0c8f0">
   <div style="background:#4f6ef7;padding:18px 22px">
-    <div style="color:white;font-size:18px;font-weight:bold">Consegna Router</div>
-    <div style="color:#ccd4ff;font-size:12px;margin-top:4px">${today} - ${routers.length} dispositivo/i</div>
+    <div style="color:white;font-size:18px;font-weight:bold">Consegna Apparati</div>
+    <div style="color:#ccd4ff;font-size:12px;margin-top:4px">${today} - ${routers.length} apparato/i</div>
   </div>
   <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
     <thead><tr>
@@ -639,8 +717,9 @@ function openOutlookMail(routers) {
   const pad = (s, n) => String(s).padEnd(n);
   const sep = '-'.repeat(58);
   const lines = [
-    `CONSEGNA ROUTER - ${today}`,
-    `${routers.length} dispositivo/i`,
+    `CONSEGNA APPARATI - ${today}`,
+    `${routers.length} apparato/i`,
+    ...(ldv ? [`LDV: ${ldv}`] : []),
     '',
     sep,
     `${pad('MODELLO',22)} | ${pad('SERIALE',14)} | ${pad('PIN',8)} | STATO`,
@@ -662,11 +741,11 @@ function openOutlookMail(routers) {
 
 // ── SETTINGS ───────────────────────────────────────────
 function loadSettingsUI() {
-  document.getElementById('mail-subject').value = state.settings.mailSubject || 'Consegna router - {data}';
+  document.getElementById('mail-subject').value = state.settings.mailSubject || 'Consegna apparati - {data}';
   renderRecipients();
 }
 function saveSettings() {
-  state.settings.mailSubject = document.getElementById('mail-subject').value.trim() || 'Consegna router - {data}';
+  state.settings.mailSubject = document.getElementById('mail-subject').value.trim() || 'Consegna apparati - {data}';
   saveState();
 }
 function renderRecipients() {
@@ -683,7 +762,7 @@ function addRecipient() { state.settings.recipients.push(''); saveState(); rende
 function removeRecipient(i) { state.settings.recipients.splice(i,1); saveState(); renderRecipients(); }
 
 function clearAll() {
-  if (!confirm('Cancellare tutti i router e i modelli? Azione irreversibile.')) return;
+  if (!confirm('Cancellare tutti gli apparati e i modelli? Azione irreversibile.')) return;
   state.routers = []; state.models = [];
   saveState(); renderAll(); renderConsegna(); renderStorico(); renderSettingsModels();
   showToast('Dati cancellati');
@@ -730,7 +809,7 @@ function backupData() {
 
   const info = document.getElementById('backup-info');
   info.style.display = 'block';
-  info.innerHTML = `&#10003; <b>${fileName}.json</b> &nbsp;&bull;&nbsp; ${state.routers.length} router &nbsp;&bull;&nbsp; ${state.models.length} modelli &nbsp;&bull;&nbsp; ${now.toLocaleString('it-IT')}`;
+  info.innerHTML = `&#10003; <b>${fileName}.json</b> &nbsp;&bull;&nbsp; ${state.routers.length} apparati &nbsp;&bull;&nbsp; ${state.models.length} modelli &nbsp;&bull;&nbsp; ${now.toLocaleString('it-IT')}`;
   showToast('✅ Backup scaricato: ' + fileName + '.json');
 }
 
@@ -747,7 +826,7 @@ function restoreData(event) {
       if (!parsed.routers || !Array.isArray(parsed.routers)) throw new Error('File non valido: campo "routers" mancante');
       if (!parsed.settings) throw new Error('File non valido: campo "settings" mancante');
       const meta = parsed._meta || {};
-      const msg = `Trovati ${parsed.routers.length} router e ${(parsed.models||[]).length} modelli` +
+      const msg = `Trovati ${parsed.routers.length} apparati e ${(parsed.models||[]).length} modelli` +
         (meta.exportedAt ? ` — backup del ${new Date(meta.exportedAt).toLocaleString('it-IT')}` : '');
       if (!confirm(`Ripristinare i dati?
 
@@ -767,11 +846,11 @@ I dati attuali verranno sostituiti.`)) {
       loadSettingsUI();
       renderSettingsModels();
       status.style.color = 'var(--accent)';
-      status.textContent = `✓ ${parsed.routers.length} router ripristinati`;
-      showToast(`✅ Dati ripristinati — ${parsed.routers.length} router`);
+      status.textContent = `✓ ${parsed.routers.length} apparati ripristinati`;
+      showToast(`✅ Dati ripristinati — ${parsed.routers.length} apparati`);
       const info = document.getElementById('backup-info');
       info.style.display = 'block';
-      info.innerHTML = `✓ Ripristino completato &nbsp;•&nbsp; ${parsed.routers.length} router &nbsp;•&nbsp; ${(parsed.models||[]).length} modelli` +
+      info.innerHTML = `✓ Ripristino completato &nbsp;•&nbsp; ${parsed.routers.length} apparati &nbsp;•&nbsp; ${(parsed.models||[]).length} modelli` +
         (meta.exportedAt ? ` &nbsp;•&nbsp; Backup del ${new Date(meta.exportedAt).toLocaleString('it-IT')}` : '');
     } catch(err) {
       status.style.color = 'var(--danger)';
