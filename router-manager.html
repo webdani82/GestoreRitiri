@@ -598,63 +598,53 @@ function openOutlookMail(routers) {
   const today = new Date().toLocaleDateString('it-IT');
   const subject = (s.mailSubject || 'Consegna router - {data}').replace('{data}', today);
 
-  // Build HTML mail and open as .eml file (Outlook picks it up with full formatting)
-  const thStyle = 'padding:10px 16px;text-align:left;font-size:11px;letter-spacing:.08em;color:#7b85b0;text-transform:uppercase;background:#f8faff;border-bottom:2px solid #e2e8f0;font-family:Arial,sans-serif';
-  const tdBase = 'padding:11px 16px;border-bottom:1px solid #eef0ff;font-family:monospace;font-size:13px';
+  const thStyle = 'padding:10px 14px;text-align:left;font-size:11px;color:#555;text-transform:uppercase;background:#e8eeff;border-bottom:2px solid #c0c8f0;font-family:Arial,sans-serif';
+  const tdBase = 'padding:10px 14px;border-bottom:1px solid #eaecf8;font-family:Arial,sans-serif;font-size:13px';
 
   const tableRows = routers.map((r, i) => {
-    const bg = i % 2 === 0 ? '#ffffff' : '#f8faff';
-    const stato = r.guasto
-      ? '<span style="background:#fffbeb;color:#d97706;font-weight:700;font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid #fde68a;font-family:Arial,sans-serif">&#9888; GUASTO</span>'
-      : '<span style="color:#10b981;font-weight:700;font-size:12px;font-family:Arial,sans-serif">&#10003; OK</span>';
+    const bg = i % 2 === 0 ? '#ffffff' : '#f6f8ff';
+    const stato = r.guasto ? '&#9888; GUASTO' : '&#10003; OK';
+    const statoColor = r.guasto ? 'color:#c05000;font-weight:bold' : 'color:#008050;font-weight:bold';
     return `<tr style="background:${bg}">
-      <td style="${tdBase};color:#1e2356">${r.serial}</td>
-      <td style="${tdBase};color:#4f6ef7;font-weight:700;font-size:14px;letter-spacing:.05em">${r.pin}</td>
-      <td style="${tdBase};color:#64748b">${r.model}</td>
-      <td style="${tdBase}">${stato}</td>
+      <td style="${tdBase};font-family:monospace;color:#1e2356">${r.serial}</td>
+      <td style="${tdBase};font-family:monospace;font-weight:bold;font-size:15px;color:#3355dd">${r.pin}</td>
+      <td style="${tdBase};color:#444">${r.model}</td>
+      <td style="${tdBase};${statoColor}">${stato}</td>
     </tr>`;
   }).join('');
 
   const htmlBody = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:24px;background:#f0f4ff;font-family:Arial,sans-serif">
-<div style="max-width:620px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(79,110,247,0.12)">
-  <div style="background:linear-gradient(135deg,#4f6ef7,#06b6d4);padding:24px 28px">
-    <h1 style="margin:0 0 6px;color:white;font-size:22px;font-weight:700">&#128230; Consegna Router</h1>
-    <p style="margin:0;color:rgba(255,255,255,0.85);font-size:13px">${today} &nbsp;&bull;&nbsp; ${routers.length} dispositivo/i</p>
+<body style="margin:0;padding:20px;background:#f0f4ff;font-family:Arial,sans-serif">
+<div style="max-width:580px;margin:0 auto;background:white;border:1px solid #c0c8f0">
+  <div style="background:#4f6ef7;padding:18px 22px">
+    <div style="color:white;font-size:18px;font-weight:bold">Consegna Router</div>
+    <div style="color:#ccd4ff;font-size:12px;margin-top:4px">${today} - ${routers.length} dispositivo/i</div>
   </div>
-  <div style="padding:0 0 4px">
-    <table style="width:100%;border-collapse:collapse">
-      <thead><tr>
-        <th style="${thStyle}">Seriale</th>
-        <th style="${thStyle}">PIN</th>
-        <th style="${thStyle}">Modello</th>
-        <th style="${thStyle}">Stato</th>
-      </tr></thead>
-      <tbody>${tableRows}</tbody>
-    </table>
-  </div>
-  <div style="padding:16px 28px 20px;border-top:1px solid #eef0ff;font-size:11px;color:#7b85b0;font-family:Arial,sans-serif">
-    Pratica gestita con <b style="color:#4f6ef7">${APP_NAME} ${APP_VERSION}</b>
-    &nbsp;&bull;&nbsp; Created by Daniele Mariani &amp; Claude Strife Sonnet
+  <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+    <thead><tr>
+      <th style="${thStyle}">SERIALE</th>
+      <th style="${thStyle}">PIN</th>
+      <th style="${thStyle}">MODELLO</th>
+      <th style="${thStyle}">STATO</th>
+    </tr></thead>
+    <tbody>${tableRows}</tbody>
+  </table>
+  <div style="padding:12px 14px;border-top:1px solid #e0e4f8;font-size:11px;color:#888;font-family:Arial,sans-serif">
+    Pratica gestita con <b>${APP_NAME} ${APP_VERSION}</b> - Created by Daniele Mariani &amp; Claude Strife Sonnet
   </div>
 </div>
 </body></html>`;
 
-  // Usa mailto: — funziona su tutti i dispositivi e apre direttamente il client mail
-  const colW = [24, 14, 24];
-  const pad = (s, n) => String(s).padEnd(n);
-  const sep = '-'.repeat(colW[0] + colW[1] + colW[2] + 8);
-  const header = `CONSEGNA ROUTER - ${today}\n${routers.length} dispositivo/i\n\n${sep}\n`;
-  const th = pad('SERIALE', colW[0]) + pad('PIN', colW[1]) + pad('MODELLO', colW[2]) + 'STATO';
-  const rows = routers.map(r =>
-    pad(r.serial, colW[0]) + pad(r.pin, colW[1]) + pad(r.model, colW[2]) + (r.guasto ? '⚠ GUASTO' : 'OK')
-  ).join('\n');
-  const foot = `\n${sep}\nPratica gestita con ${APP_NAME} ${APP_VERSION}\nCreated by Daniele Mariani & Claude Strife Sonnet`;
-  const body = header + th + '\n' + sep + '\n' + rows + foot;
-
-  const mailto = `mailto:${recipients.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.location.href = mailto;
+  const to = recipients.join(', ');
+  const eml = `To: ${to}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n${htmlBody}`;
+  const blob = new Blob([eml], { type: 'message/rfc822' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `consegna-router-${today.replace(/\//g,'-')}.eml`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
   return true;
 }
 
