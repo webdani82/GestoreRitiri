@@ -636,15 +636,29 @@ function openOutlookMail(routers) {
 </div>
 </body></html>`;
 
-  const to = recipients.join(', ');
-  const eml = `To: ${to}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n${htmlBody}`;
-  const blob = new Blob([eml], { type: 'message/rfc822' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `consegna-router-${today.replace(/\//g,'-')}.eml`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  const sep = '--------------------------------';
+  const lines = [
+    `CONSEGNA ROUTER - ${today}`,
+    `${routers.length} dispositivo/i`,
+    '',
+    sep,
+    `SERIALE            PIN       MODELLO              STATO`,
+    sep,
+    ...routers.map(r => {
+      const serial  = r.serial.padEnd(18);
+      const pin     = r.pin.padEnd(10);
+      const model   = r.model.padEnd(20);
+      const stato   = r.guasto ? 'GUASTO' : 'OK';
+      return `${serial} ${pin} ${model} ${stato}`;
+    }),
+    sep,
+    '',
+    `Pratica gestita con ${APP_NAME} ${APP_VERSION}`,
+    `Created by Daniele Mariani & Claude Strife Sonnet`,
+  ].join('\n');
+
+  const mailto = `mailto:${recipients.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines)}`;
+  window.location.href = mailto;
   return true;
 }
 
