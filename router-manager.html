@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="Gestore Ritiri">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#4f6ef7">
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" id="pwa-manifest">
 
 <!-- PWA icon inline (SVG data URL) -->
 <link rel="apple-touch-icon" id="pwa-icon-link">
@@ -641,21 +641,20 @@ function openOutlookMail(routers) {
 </div>
 </body></html>`;
 
-  // Create .eml file and open it — Outlook/Mail apps handle it natively
-  const to = recipients.join(', ');
-  const eml = `To: ${to}
-Subject: ${subject}
-MIME-Version: 1.0
-Content-Type: text/html; charset=UTF-8
+  // Usa mailto: — funziona su tutti i dispositivi e apre direttamente il client mail
+  const colW = [24, 14, 24];
+  const pad = (s, n) => String(s).padEnd(n);
+  const sep = '-'.repeat(colW[0] + colW[1] + colW[2] + 8);
+  const header = `CONSEGNA ROUTER - ${today}\n${routers.length} dispositivo/i\n\n${sep}\n`;
+  const th = pad('SERIALE', colW[0]) + pad('PIN', colW[1]) + pad('MODELLO', colW[2]) + 'STATO';
+  const rows = routers.map(r =>
+    pad(r.serial, colW[0]) + pad(r.pin, colW[1]) + pad(r.model, colW[2]) + (r.guasto ? '⚠ GUASTO' : 'OK')
+  ).join('\n');
+  const foot = `\n${sep}\nPratica gestita con ${APP_NAME} ${APP_VERSION}\nCreated by Daniele Mariani & Claude Strife Sonnet`;
+  const body = header + th + '\n' + sep + '\n' + rows + foot;
 
-${htmlBody}`;
-  const blob = new Blob([eml], { type: 'message/rfc822' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `consegna-router-${today.replace(/\//g,'-')}.eml`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  const mailto = `mailto:${recipients.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
   return true;
 }
 
@@ -839,9 +838,20 @@ function setupPWA() {
   const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
   document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
 
-  // Register external service worker
+  // Register service worker for offline support
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    const swCode = `
+      const CACHE = 'gestore-ritiri-v1';
+      self.addEventListener('install', e => {
+        e.waitUntil(caches.open(CACHE).then(c => c.addAll(['.'])));
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+      });
+    `;
+    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl).catch(() => {});
   }
 
   // ── Install prompt banner ─────────────────────────────
