@@ -636,20 +636,18 @@ function openOutlookMail(routers) {
 </div>
 </body></html>`;
 
-  const sep = '--------------------------------';
+  const pad = (s, n) => String(s).padEnd(n);
+  const sep = '-'.repeat(58);
   const lines = [
     `CONSEGNA ROUTER - ${today}`,
     `${routers.length} dispositivo/i`,
     '',
     sep,
-    `SERIALE            PIN       MODELLO              STATO`,
+    `${pad('MODELLO',22)} | ${pad('SERIALE',14)} | ${pad('PIN',8)} | STATO`,
     sep,
     ...routers.map(r => {
-      const serial  = r.serial.padEnd(18);
-      const pin     = r.pin.padEnd(10);
-      const model   = r.model.padEnd(20);
-      const stato   = r.guasto ? 'GUASTO' : 'OK';
-      return `${serial} ${pin} ${model} ${stato}`;
+      const stato = r.guasto ? 'GUASTO' : 'OK';
+      return `${pad(r.model,22)} | ${pad(r.serial,14)} | ${pad(r.pin,8)} | ${stato}`;
     }),
     sep,
     '',
