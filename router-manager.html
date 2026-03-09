@@ -289,12 +289,17 @@
       <button class="btn btn-ghost" style="padding:11px 16px;font-size:12px" onclick="exportStoricoPDF()">⬇ PDF</button>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
-      <table class="router-table" id="storico-table">
-        <thead><tr>
-          <th>Modello</th><th>Seriale</th><th>PIN</th><th>Stato</th><th>LDV</th><th>Ritirato il</th><th>Consegnato il</th>
-        </tr></thead>
-        <tbody id="storico-tbody"></tbody>
-      </table>
+      <div id="storico-scroll-hint" style="display:none;background:var(--accent-light);padding:7px 14px;font-family:var(--mono);font-size:11px;color:var(--accent);border-bottom:1px solid var(--border)">
+        ← Scorri per vedere tutte le colonne →
+      </div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table class="router-table" id="storico-table" style="min-width:620px">
+          <thead><tr>
+            <th>Modello</th><th>Seriale</th><th>PIN</th><th>Stato</th><th>LDV</th><th>Ritirato il</th><th>Consegnato il</th>
+          </tr></thead>
+          <tbody id="storico-tbody"></tbody>
+        </table>
+      </div>
       <div id="storico-empty" class="empty-state" style="display:none"><div class="empty-icon">📋</div><p>Nessuna consegna ancora effettuata</p></div>
     </div>
   </main>
@@ -562,6 +567,8 @@ function renderStorico() {
   const table = document.getElementById('storico-table');
   if (!delivered.length) { tbody.innerHTML=''; empty.style.display='block'; table.style.display='none'; return; }
   empty.style.display='none'; table.style.display='';
+  const hint = document.getElementById('storico-scroll-hint');
+  if (hint) hint.style.display = window.innerWidth < 640 ? 'block' : 'none';
   tbody.innerHTML = delivered.map(r => `
     <tr>
       <td class="model-cell">${r.model}</td>
