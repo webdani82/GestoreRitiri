@@ -1,0 +1,25 @@
+{
+  "name": "Gestore Ritiri",
+  "short_name": "Ritiri",
+  "description": "Gestione ritiri e consegna router con PIN",
+  "start_url": "./router-manager.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0f4ff",
+  "theme_color": "#4f6ef7",
+  "lang": "it",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

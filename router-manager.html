@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Gestore Ritiri</title>
+
+<!-- PWA -->
+<meta name="application-name" content="Gestore Ritiri">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gestore Ritiri">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#4f6ef7">
+<link rel="manifest" href="./manifest.json">
+
+<!-- PWA icon inline (SVG data URL) -->
+<link rel="apple-touch-icon" id="pwa-icon-link">
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0f4ff;
+    --surface: #ffffff;
+    --surface2: #e8eeff;
+    --border: #d0d8f0;
+    --accent: #4f6ef7;
+    --accent-light: #eef0ff;
+    --accent2: #06b6d4;
+    --danger: #ef4444;
+    --danger-light: #fef2f2;
+    --warning: #f59e0b;
+    --warning-light: #fffbeb;
+    --success: #10b981;
+    --text: #1e2356;
+    --muted: #7b85b0;
+    --shadow: 0 2px 12px rgba(79,110,247,0.08);
+    --shadow-md: 0 4px 24px rgba(79,110,247,0.13);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 50%, #f0f9ff 100%); background-attachment: fixed; color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0; position: sticky; top: 0; z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; padding: 0 18px; gap: 12px;
+  }
+  .logo { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--accent); letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; box-shadow: 0 0 0 3px rgba(79,110,247,0.2); }
+  .logo-version { font-size: 10px; color: var(--accent); background: var(--accent-light); border: 1px solid rgba(79,110,247,0.25); border-radius: 20px; padding: 2px 8px; letter-spacing: 0.04em; font-weight: 600; }
+  @keyframes pulse { 0%,100%{opacity:1; box-shadow: 0 0 0 3px rgba(79,110,247,0.2);} 50%{opacity:0.7; box-shadow: 0 0 0 6px rgba(79,110,247,0.05);} }
+
+  .nav-tabs { display: flex; gap: 4px; background: var(--bg); border-top: 1px solid var(--border); padding: 8px 12px; overflow-x: auto; scrollbar-width: none; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; background: transparent; color: var(--muted); letter-spacing: 0.05em; transition: all 0.18s; flex-shrink: 0; }
+  .nav-tab:hover { color: var(--accent); background: var(--accent-light); }
+  .nav-tab.active { background: var(--accent); color: white; box-shadow: 0 2px 8px rgba(79,110,247,0.35); }
+  .badge { display: inline-flex; align-items: center; justify-content: center; background: var(--danger); color: white; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 1px 6px; margin-left: 5px; font-family: var(--mono); }
+
+  main { max-width: 980px; margin: 0 auto; padding: 22px 14px 48px; }
+
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .section-title { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; white-space: nowrap; }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 18px; margin-bottom: 18px; box-shadow: var(--shadow); }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .form-grid .flag-group { grid-column: 1 / -1; }
+  @media (min-width: 600px) {
+    .form-grid { grid-template-columns: 1.2fr 1fr 1.6fr auto; }
+    .form-grid .flag-group { grid-column: auto; }
+    main { padding: 32px 24px 48px; }
+  }
+  .form-group { display: flex; flex-direction: column; gap: 8px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; font-weight: 600; }
+  input[type=text], input[type=email], select {
+    background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px;
+    color: var(--text); font-family: var(--mono); font-size: 16px; padding: 14px 16px;
+    outline: none; transition: all 0.18s; width: 100%;
+    -webkit-appearance: none; appearance: none;
+  }
+  input[type=text]:focus, input[type=email]:focus, select:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 3px rgba(79,110,247,0.12); }
+  input::placeholder { color: var(--muted); }
+  select option { background: white; }
+  select { cursor: pointer; }
+
+  /* Guasto flag */
+  .flag-group { display: flex; flex-direction: column; gap: 8px; }
+  .flag-toggle {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; cursor: pointer; transition: all 0.18s; user-select: none;
+    font-family: var(--mono); font-size: 15px; color: var(--muted);
+    min-height: 52px;
+  }
+  .flag-toggle:hover { border-color: var(--warning); color: var(--warning); background: var(--warning-light); }
+  .flag-toggle.active { border-color: var(--warning); background: var(--warning-light); color: var(--warning); box-shadow: 0 0 0 3px rgba(245,158,11,0.12); }
+  .flag-toggle input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--warning); cursor: pointer; }
+  .guasto-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 10px; background: var(--warning-light); color: var(--warning); font-family: var(--mono); letter-spacing: 0.05em; border: 1px solid rgba(245,158,11,0.3); }
+
+  .btn { font-family: var(--mono); font-size: 14px; font-weight: 600; letter-spacing: 0.04em; padding: 13px 24px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.18s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .btn-primary { background: var(--accent); color: white; box-shadow: 0 2px 8px rgba(79,110,247,0.3); }
+  .btn-primary:hover { background: #3a5ce8; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(79,110,247,0.4); }
+  .btn-danger { background: var(--danger-light); color: var(--danger); border: 1.5px solid rgba(239,68,68,0.3); }
+  .btn-danger:hover { background: var(--danger); color: white; box-shadow: 0 2px 8px rgba(239,68,68,0.3); }
+  .btn-blue { background: var(--accent2); color: white; box-shadow: 0 2px 8px rgba(6,182,212,0.3); }
+  .btn-blue:hover { background: #0891b2; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(6,182,212,0.4); }
+  .btn-ghost { background: white; color: var(--muted); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+  .router-table { width: 100%; border-collapse: collapse; }
+  .router-table th { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-align: left; padding: 11px 14px; border-bottom: 1.5px solid var(--border); text-transform: uppercase; font-weight: 600; background: var(--bg); }
+  .router-table td { padding: 14px 12px; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 13px; }
+  .router-table tr:last-child td { border-bottom: none; }
+  .router-table tbody tr:hover td { background: var(--accent-light); }
+  .pin-cell { color: var(--accent); font-weight: 700; background: var(--accent-light); border-radius: 4px; }
+  .serial-cell { color: var(--text); }
+  .model-cell { color: var(--muted); font-size: 12px; }
+  .checkbox-cell { width: 40px; text-align: center; }
+  input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+
+  .settings-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 640px) { .settings-grid { grid-template-columns: 1fr 1fr; } }
+  .settings-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+  .settings-card h3 { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px; font-weight: 700; }
+  .settings-list { display: flex; flex-direction: column; gap: 10px; }
+  .settings-row { display: flex; align-items: center; gap: 10px; }
+  .settings-row input { flex: 1; }
+  .remove-btn { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 20px; line-height: 1; padding: 2px 6px; opacity: 0.6; transition: opacity 0.15s; }
+  .remove-btn:hover { opacity: 1; }
+  .add-row-btn { margin-top: 8px; background: var(--accent-light); border: 1.5px dashed rgba(79,110,247,0.3); color: var(--accent); padding: 10px; border-radius: 10px; cursor: pointer; font-size: 13px; width: 100%; transition: all 0.18s; font-family: var(--mono); font-weight: 600; }
+  .add-row-btn:hover { border-color: var(--accent); background: white; box-shadow: 0 0 0 3px rgba(79,110,247,0.1); }
+
+  .empty-state { text-align: center; padding: 56px 20px; color: var(--muted); background: var(--bg); }
+  .empty-icon { font-size: 44px; margin-bottom: 14px; opacity: 0.35; }
+  .empty-state p { font-family: var(--mono); font-size: 13px; }
+
+  #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+  .toast { background: white; border: 1.5px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 14px 18px; font-family: var(--mono); font-size: 13px; color: var(--text); box-shadow: 0 8px 32px rgba(79,110,247,0.15); animation: slideIn 0.2s ease; max-width: 380px; }
+  .toast.error { border-left-color: var(--danger); border-color: rgba(239,68,68,0.3); }
+  .toast.warning { border-left-color: var(--warning); border-color: rgba(245,158,11,0.3); }
+  @keyframes slideIn { from { transform: translateX(20px); opacity:0; } to { transform: translateX(0); opacity:1; } }
+
+  .action-bar { position: sticky; bottom: 0; background: white; border-top: 1.5px solid var(--border); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; box-shadow: 0 -4px 20px rgba(79,110,247,0.08); }
+  .selected-count { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  .selected-count span { color: var(--accent); font-weight: 600; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(30,35,86,0.45); backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center; }
+  .overlay.open { display: flex; }
+  .modal { background: white; border: 1.5px solid var(--border); border-radius: 20px; padding: 28px 24px; max-width: 500px; width: 92%; box-shadow: var(--shadow-md); }
+  .modal h2 { font-family: var(--mono); font-size: 16px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+  .modal p { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+  .modal-list { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 24px; font-family: var(--mono); font-size: 12px; max-height: 240px; overflow-y: auto; }
+  .modal-list-item { padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .modal-list-item:last-child { border-bottom: none; }
+  .modal-list-item .pin { color: var(--accent); font-weight: 600; }
+  .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      GESTORE RITIRI
+      <span class="logo-version">v1.1</span>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-btn-ritiro" onclick="switchTab('ritiro',this)">RITIRO</button>
+    <button class="nav-tab" id="tab-btn-consegna" onclick="switchTab('consegna',this)">CONSEGNA <span class="badge" id="stock-badge">0</span></button>
+    <button class="nav-tab" id="tab-btn-storico" onclick="switchTab('storico',this)">STORICO</button>
+    <button class="nav-tab" id="tab-btn-impostazioni" onclick="switchTab('impostazioni',this)">⚙ IMPOSTAZIONI</button>
+  </div>
+</header>
+
+<div id="toast-container"></div>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="confirm-modal">
+  <div class="modal">
+    <h2>📦 Conferma consegna</h2>
+    <p>Stai per consegnare i seguenti router. Verrà aperto Outlook con la mail precompilata pronta all'invio.</p>
+    <div class="modal-list" id="modal-list"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Annulla</button>
+      <button class="btn btn-blue" onclick="confirmConsegna()" id="confirm-btn">✉️ Apri in Outlook</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TAB RITIRO ══════════════ -->
+<div class="tab-content active" id="tab-ritiro">
+  <main>
+    <div class="section-header"><span class="section-title">Nuovo ritiro</span><div class="section-line"></div></div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Seriale</label>
+          <input type="text" id="input-serial" placeholder="SN123456789" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>PIN</label>
+          <input type="text" id="input-pin" placeholder="00000000" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Marca / Modello</label>
+          <select id="input-model">
+            <option value="" disabled selected>— seleziona o scrivi —</option>
+          </select>
+        </div>
+        <div class="flag-group">
+          <label>Stato</label>
+          <label class="flag-toggle" id="guasto-toggle">
+            <input type="checkbox" id="input-guasto" onchange="updateGuastoToggle()">
+            ⚠ Guasto
+          </label>
+        </div>
+      </div>
+
+      <!-- Nuovo modello personalizzato -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px">
+        <input type="text" id="input-new-model" placeholder="Scrivi nuovo modello..." style="flex:1;min-width:180px" autocomplete="off">
+        <button class="btn btn-ghost" style="padding:12px 18px;font-size:13px" onclick="addNewModel()">+ Aggiungi</button>
+      </div>
+
+      <button class="btn btn-primary" onclick="addRouter()">+ Aggiungi router</button>
+    </div>
+
+    <div class="section-header" style="margin-top:32px"><span class="section-title">In magazzino</span><div class="section-line"></div></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="router-table" id="ritiro-preview-table">
+        <thead><tr>
+          <th>Seriale</th><th>PIN</th><th>Modello</th><th>Stato</th><th>Ritirato il</th><th></th>
+        </tr></thead>
+        <tbody id="ritiro-preview-tbody"></tbody>
+      </table>
+      <div id="ritiro-preview-empty" class="empty-state"><div class="empty-icon">📦</div><p>Nessun router in magazzino</p></div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════ TAB CONSEGNA ══════════════ -->
+<div class="tab-content" id="tab-consegna">
+  <main>
+    <div class="section-header"><span class="section-title">Seleziona router da consegnare</span><div class="section-line"></div></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="router-table" id="consegna-table">
+        <thead><tr>
+          <th class="checkbox-cell"><input type="checkbox" id="select-all" onchange="toggleSelectAll()"></th>
+          <th>Seriale</th><th>PIN</th><th>Modello</th><th>Stato</th><th>Ritirato il</th>
+        </tr></thead>
+        <tbody id="consegna-tbody"></tbody>
+      </table>
+      <div id="consegna-empty" class="empty-state" style="display:none"><div class="empty-icon">📭</div><p>Nessun router in magazzino</p></div>
+    </div>
+  </main>
+  <div class="action-bar">
+    <div class="selected-count"><span id="sel-count">0</span> router selezionati</div>
+    <button class="btn btn-blue" onclick="openModal()" id="consegna-btn" disabled>✉️ Consegna selezionati</button>
+  </div>
+</div>
+
+<!-- ══════════════ TAB STORICO ══════════════ -->
+<div class="tab-content" id="tab-storico">
+  <main>
+    <div class="section-header"><span class="section-title">Storico consegne</span><div class="section-line"></div></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="router-table" id="storico-table">
+        <thead><tr>
+          <th>Seriale</th><th>PIN</th><th>Modello</th><th>Stato</th><th>Ritirato il</th><th>Consegnato il</th>
+        </tr></thead>
+        <tbody id="storico-tbody"></tbody>
+      </table>
+      <div id="storico-empty" class="empty-state" style="display:none"><div class="empty-icon">📋</div><p>Nessuna consegna ancora effettuata</p></div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════ TAB IMPOSTAZIONI ══════════════ -->
+<div class="tab-content" id="tab-impostazioni">
+  <main>
+    <div class="section-header"><span class="section-title">Impostazioni</span><div class="section-line"></div></div>
+    <div class="settings-grid">
+
+      <div class="settings-card">
+        <h3>📬 Destinatari mail</h3>
+        <div class="settings-list" id="recipients-list"></div>
+        <button class="add-row-btn" onclick="addRecipient()">+ Aggiungi destinatario</button>
+      </div>
+
+      <div class="settings-card">
+        <h3>✏️ Oggetto mail</h3>
+        <div class="form-group" style="margin-bottom:14px">
+          <label>Oggetto</label>
+          <input type="text" id="mail-subject" placeholder="Consegna router - {data}" oninput="saveSettings()">
+          <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">{data} = data odierna</span>
+        </div>
+        <div class="divider"></div>
+        <p style="font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.7;background:var(--bg);border-radius:8px;padding:10px 12px;border:1px solid var(--border)">
+          La mail viene aperta direttamente in <b style="color:var(--accent2)">Outlook</b> precompilata e pronta all'invio.
+        </p>
+      </div>
+
+      <div class="settings-card" style="grid-column:1/-1">
+        <h3>🗂 Modelli salvati</h3>
+        <div id="models-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+        <p style="font-family:var(--mono);font-size:11px;color:var(--muted)">Aggiungi nuovi modelli dalla scheda Ritiro. Clicca × per rimuovere un modello non più usato.</p>
+      </div>
+
+    </div>
+    <!-- BACKUP / RESTORE -->
+    <div class="settings-card" style="margin-top:20px;grid-column:1/-1">
+      <h3>💾 Backup &amp; Ripristino dati</h3>
+      <p style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:16px;background:var(--bg);border-radius:8px;padding:10px 12px;border:1px solid var(--border)">
+        Esporta tutti i dati (router, modelli, impostazioni) in un file <b style="color:var(--text)">.json</b>.<br>
+        Puoi salvarlo su Google Drive, iCloud o qualsiasi altra cartella, e ricaricarło in qualsiasi momento.
+      </p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+        <button class="btn btn-primary" onclick="backupData()" style="gap:10px">
+          ⬇ Scarica backup
+        </button>
+        <label class="btn btn-ghost" style="cursor:pointer;gap:10px" for="restore-input">
+          ⬆ Carica backup
+        </label>
+        <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreData(event)">
+        <span id="restore-status" style="font-family:var(--mono);font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div id="backup-info" style="display:none;margin-top:14px;background:var(--accent-light);border:1.5px solid rgba(79,110,247,0.2);border-radius:10px;padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--accent)"></div>
+    </div>
+
+    <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="saveSettings();showToast('Impostazioni salvate ✓')">Salva impostazioni</button>
+      <button class="btn btn-ghost" onclick="clearAll()">🗑 Cancella tutti i dati</button>
+    </div>
+  </main>
+</div>
+
+<script>
+const APP_NAME = "Gestore Ritiri";
+const APP_VERSION = "v1.1";
+
+// ── STATE ──────────────────────────────────────────────
+let state = {
+  routers: [],
+  models: [],   // { name, count }
+  settings: {
+    recipients: ['', ''],
+    mailSubject: 'Consegna router - {data}'
+  }
+};
+
+function loadState() {
+  try { const s = localStorage.getItem('routerMgr2'); if (s) state = JSON.parse(s); } catch(e){}
+  // Ensure arrays exist
+  if (!state.models) state.models = [];
+  if (!state.settings) state.settings = { recipients: ['',''], mailSubject: 'Consegna router - {data}' };
+}
+function saveState() { localStorage.setItem('routerMgr2', JSON.stringify(state)); }
+
+// ── TABS ───────────────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(e => e.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'consegna') renderConsegna();
+  if (tab === 'storico') renderStorico();
+  if (tab === 'impostazioni') renderSettingsModels();
+}
+
+// ── MODELS ─────────────────────────────────────────────
+function getModelsSorted() {
+  return [...state.models].sort((a, b) => b.count - a.count);
+}
+
+function refreshModelSelect() {
+  const sel = document.getElementById('input-model');
+  const current = sel.value;
+  sel.innerHTML = '<option value="" disabled>— seleziona modello —</option>';
+  getModelsSorted().forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.name;
+    opt.textContent = m.name + (m.count > 1 ? ` (×${m.count})` : '');
+    sel.appendChild(opt);
+  });
+  if (current && state.models.find(m => m.name === current)) sel.value = current;
+}
+
+function addNewModel() {
+  const input = document.getElementById('input-new-model');
+  const name = input.value.trim();
+  if (!name) return showToast('Scrivi il nome del modello', 'error');
+  if (state.models.find(m => m.name.toLowerCase() === name.toLowerCase())) return showToast('Modello già presente', 'warning');
+  state.models.push({ name, count: 0 });
+  saveState(); refreshModelSelect(); input.value = '';
+  document.getElementById('input-model').value = name;
+  showToast('Modello aggiunto: ' + name);
+}
+
+function removeModel(name) {
+  if (state.routers.find(r => r.model === name && !r.deliveredAt)) { showToast('Modello in uso — non rimuovibile', 'error'); return; }
+  state.models = state.models.filter(m => m.name !== name);
+  saveState(); refreshModelSelect(); renderSettingsModels();
+}
+
+function incrementModel(name) {
+  const m = state.models.find(m => m.name === name);
+  if (m) m.count++;
+}
+
+function renderSettingsModels() {
+  const container = document.getElementById('models-list');
+  if (!container) return;
+  if (!state.models.length) { container.innerHTML = '<span style="font-family:var(--mono);font-size:12px;color:var(--muted)">Nessun modello salvato</span>'; return; }
+  container.innerHTML = getModelsSorted().map(m => `
+    <span style="display:inline-flex;align-items:center;gap:6px;background:var(--accent-light);border:1.5px solid rgba(79,110,247,0.2);border-radius:20px;padding:5px 12px;font-family:var(--mono);font-size:12px;color:var(--accent)">
+      ${m.name} <span style="color:var(--muted)">×${m.count}</span>
+      <button onclick="removeModel('${m.name.replace(/'/g,"\\'")}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;line-height:1;padding:0 2px;opacity:0.7" title="Rimuovi">×</button>
+    </span>`).join('');
+}
+
+// ── GUASTO TOGGLE ──────────────────────────────────────
+function updateGuastoToggle() {
+  const cb = document.getElementById('input-guasto');
+  const toggle = document.getElementById('guasto-toggle');
+  toggle.classList.toggle('active', cb.checked);
+}
+
+// ── ADD ROUTER ─────────────────────────────────────────
+function addRouter() {
+  const serial  = document.getElementById('input-serial').value.trim();
+  const pin     = document.getElementById('input-pin').value.trim();
+  const model   = document.getElementById('input-model').value;
+  const guasto  = document.getElementById('input-guasto').checked;
+  if (!serial) return showToast('Inserisci il seriale', 'error');
+  if (!pin)    return showToast('Inserisci il PIN', 'error');
+  if (!model)  return showToast('Seleziona un modello', 'error');
+  if (state.routers.find(r => r.serial === serial)) return showToast('Seriale già presente', 'error');
+  state.routers.push({ id: Date.now(), serial, pin, model, guasto, pickedAt: new Date().toLocaleDateString('it-IT'), deliveredAt: null });
+  incrementModel(model);
+  saveState(); renderAll();
+  document.getElementById('input-serial').value = '';
+  document.getElementById('input-pin').value = '';
+  document.getElementById('input-model').value = '';
+  document.getElementById('input-guasto').checked = false;
+  updateGuastoToggle();
+  document.getElementById('input-serial').focus();
+  showToast('Router aggiunto ✓');
+}
+
+function deleteRouter(id) {
+  if (!confirm('Rimuovere questo router dal magazzino?')) return;
+  const r = state.routers.find(r => r.id === id);
+  if (r) {
+    state.routers = state.routers.filter(x => x.id !== id);
+    // Decrement count
+    const m = state.models.find(m => m.name === r.model);
+    if (m && m.count > 0) m.count--;
+    saveState(); renderAll();
+  }
+}
+
+// Tab key flow
+['input-serial','input-pin'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const fields = ['input-serial','input-pin','input-model'];
+      const next = fields[fields.indexOf(id)+1];
+      if (next) document.getElementById(next).focus();
+    }
+  });
+});
+document.getElementById('input-new-model').addEventListener('keydown', e => { if (e.key === 'Enter') addNewModel(); });
+
+// ── RENDER RITIRO PREVIEW ──────────────────────────────
+function renderRitiroPreview() {
+  const inStock = state.routers.filter(r => !r.deliveredAt);
+  const tbody = document.getElementById('ritiro-preview-tbody');
+  const empty = document.getElementById('ritiro-preview-empty');
+  const table = document.getElementById('ritiro-preview-table');
+  if (!inStock.length) { tbody.innerHTML=''; empty.style.display='block'; table.style.display='none'; return; }
+  empty.style.display='none'; table.style.display='';
+  tbody.innerHTML = inStock.map(r => `
+    <tr>
+      <td class="serial-cell">${r.serial}</td>
+      <td class="pin-cell">${r.pin}</td>
+      <td class="model-cell">${r.model}</td>
+      <td>${r.guasto ? '<span class="guasto-badge">⚠ GUASTO</span>' : '<span style="color:var(--muted);font-size:11px;font-family:var(--mono)">OK</span>'}</td>
+      <td style="color:var(--muted);font-size:12px">${r.pickedAt}</td>
+      <td><button class="btn btn-danger" style="padding:5px 12px;font-size:11px" onclick="deleteRouter(${r.id})">✕</button></td>
+    </tr>`).join('');
+}
+
+// ── RENDER CONSEGNA ────────────────────────────────────
+function renderConsegna() {
+  const inStock = state.routers.filter(r => !r.deliveredAt);
+  const tbody = document.getElementById('consegna-tbody');
+  const empty = document.getElementById('consegna-empty');
+  const table = document.getElementById('consegna-table');
+  document.getElementById('select-all').checked = false;
+  if (!inStock.length) { tbody.innerHTML=''; empty.style.display='block'; table.style.display='none'; updateSelCount(); return; }
+  empty.style.display='none'; table.style.display='';
+  tbody.innerHTML = inStock.map(r => `
+    <tr>
+      <td class="checkbox-cell"><input type="checkbox" class="router-cb" data-id="${r.id}" onchange="updateSelCount()"></td>
+      <td class="serial-cell">${r.serial}</td>
+      <td class="pin-cell">${r.pin}</td>
+      <td class="model-cell">${r.model}</td>
+      <td>${r.guasto ? '<span class="guasto-badge">⚠ GUASTO</span>' : '<span style="color:var(--muted);font-size:11px;font-family:var(--mono)">OK</span>'}</td>
+      <td style="color:var(--muted);font-size:12px">${r.pickedAt}</td>
+    </tr>`).join('');
+  updateSelCount();
+}
+
+function toggleSelectAll() {
+  const all = document.getElementById('select-all').checked;
+  document.querySelectorAll('.router-cb').forEach(cb => cb.checked = all);
+  updateSelCount();
+}
+function updateSelCount() {
+  const n = getSelected().length;
+  document.getElementById('sel-count').textContent = n;
+  document.getElementById('consegna-btn').disabled = n === 0;
+}
+function getSelected() { return [...document.querySelectorAll('.router-cb:checked')].map(cb => cb.dataset.id); }
+
+// ── RENDER STORICO ─────────────────────────────────────
+function renderStorico() {
+  const delivered = state.routers.filter(r => r.deliveredAt).sort((a,b) => b.id - a.id);
+  const tbody = document.getElementById('storico-tbody');
+  const empty = document.getElementById('storico-empty');
+  const table = document.getElementById('storico-table');
+  if (!delivered.length) { tbody.innerHTML=''; empty.style.display='block'; table.style.display='none'; return; }
+  empty.style.display='none'; table.style.display='';
+  tbody.innerHTML = delivered.map(r => `
+    <tr>
+      <td class="serial-cell">${r.serial}</td>
+      <td class="pin-cell">${r.pin}</td>
+      <td class="model-cell">${r.model}</td>
+      <td>${r.guasto ? '<span class="guasto-badge">⚠ GUASTO</span>' : '<span style="color:var(--muted);font-size:11px;font-family:var(--mono)">OK</span>'}</td>
+      <td style="color:var(--muted);font-size:12px">${r.pickedAt}</td>
+      <td style="color:var(--accent2);font-size:12px">${r.deliveredAt}</td>
+    </tr>`).join('');
+}
+
+// ── BADGE ──────────────────────────────────────────────
+function updateBadge() { document.getElementById('stock-badge').textContent = state.routers.filter(r => !r.deliveredAt).length; }
+function renderAll() { updateBadge(); renderRitiroPreview(); refreshModelSelect(); }
+
+// ── MODAL ──────────────────────────────────────────────
+let pendingIds = [];
+function openModal() {
+  pendingIds = getSelected();
+  if (!pendingIds.length) return;
+  const routers = state.routers.filter(r => pendingIds.includes(String(r.id)));
+  document.getElementById('modal-list').innerHTML = routers.map(r =>
+    `<div class="modal-list-item">
+      ${r.guasto ? '<span class="guasto-badge">⚠</span>' : ''}
+      <b>${r.serial}</b>&nbsp;•&nbsp;<span class="pin">${r.pin}</span>&nbsp;•&nbsp;<span style="color:var(--muted)">${r.model}</span>
+    </div>`).join('');
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function closeModal() { document.getElementById('confirm-modal').classList.remove('open'); pendingIds = []; }
+
+function confirmConsegna() {
+  const routers = state.routers.filter(r => pendingIds.includes(String(r.id)));
+  const ok = openOutlookMail(routers);
+  if (ok) {
+    const today = new Date().toLocaleDateString('it-IT');
+    pendingIds.forEach(id => { const r = state.routers.find(r => String(r.id) === id); if (r) r.deliveredAt = today; });
+    saveState(); renderAll(); renderConsegna();
+    closeModal();
+    showToast(`✅ Outlook aperto — ${routers.length} router segnati come consegnati`);
+  }
+}
+
+// ── OUTLOOK MAIL ───────────────────────────────────────
+function openOutlookMail(routers) {
+  const s = state.settings;
+  const recipients = s.recipients.filter(r => r.trim());
+  if (!recipients.length) { showToast('Aggiungi almeno un destinatario nelle impostazioni', 'error'); return false; }
+
+  const today = new Date().toLocaleDateString('it-IT');
+  const subject = (s.mailSubject || 'Consegna router - {data}').replace('{data}', today);
+
+  // Build HTML mail and open as .eml file (Outlook picks it up with full formatting)
+  const thStyle = 'padding:10px 16px;text-align:left;font-size:11px;letter-spacing:.08em;color:#7b85b0;text-transform:uppercase;background:#f8faff;border-bottom:2px solid #e2e8f0;font-family:Arial,sans-serif';
+  const tdBase = 'padding:11px 16px;border-bottom:1px solid #eef0ff;font-family:monospace;font-size:13px';
+
+  const tableRows = routers.map((r, i) => {
+    const bg = i % 2 === 0 ? '#ffffff' : '#f8faff';
+    const stato = r.guasto
+      ? '<span style="background:#fffbeb;color:#d97706;font-weight:700;font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid #fde68a;font-family:Arial,sans-serif">&#9888; GUASTO</span>'
+      : '<span style="color:#10b981;font-weight:700;font-size:12px;font-family:Arial,sans-serif">&#10003; OK</span>';
+    return `<tr style="background:${bg}">
+      <td style="${tdBase};color:#1e2356">${r.serial}</td>
+      <td style="${tdBase};color:#4f6ef7;font-weight:700;font-size:14px;letter-spacing:.05em">${r.pin}</td>
+      <td style="${tdBase};color:#64748b">${r.model}</td>
+      <td style="${tdBase}">${stato}</td>
+    </tr>`;
+  }).join('');
+
+  const htmlBody = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:24px;background:#f0f4ff;font-family:Arial,sans-serif">
+<div style="max-width:620px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(79,110,247,0.12)">
+  <div style="background:linear-gradient(135deg,#4f6ef7,#06b6d4);padding:24px 28px">
+    <h1 style="margin:0 0 6px;color:white;font-size:22px;font-weight:700">&#128230; Consegna Router</h1>
+    <p style="margin:0;color:rgba(255,255,255,0.85);font-size:13px">${today} &nbsp;&bull;&nbsp; ${routers.length} dispositivo/i</p>
+  </div>
+  <div style="padding:0 0 4px">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="${thStyle}">Seriale</th>
+        <th style="${thStyle}">PIN</th>
+        <th style="${thStyle}">Modello</th>
+        <th style="${thStyle}">Stato</th>
+      </tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+  </div>
+  <div style="padding:16px 28px 20px;border-top:1px solid #eef0ff;font-size:11px;color:#7b85b0;font-family:Arial,sans-serif">
+    Pratica gestita con <b style="color:#4f6ef7">${APP_NAME} ${APP_VERSION}</b>
+    &nbsp;&bull;&nbsp; Created by Daniele Mariani &amp; Claude Strife Sonnet
+  </div>
+</div>
+</body></html>`;
+
+  // Create .eml file and open it — Outlook/Mail apps handle it natively
+  const to = recipients.join(', ');
+  const eml = `To: ${to}
+Subject: ${subject}
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+
+${htmlBody}`;
+  const blob = new Blob([eml], { type: 'message/rfc822' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `consegna-router-${today.replace(/\//g,'-')}.eml`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  return true;
+}
+
+// ── SETTINGS ───────────────────────────────────────────
+function loadSettingsUI() {
+  document.getElementById('mail-subject').value = state.settings.mailSubject || 'Consegna router - {data}';
+  renderRecipients();
+}
+function saveSettings() {
+  state.settings.mailSubject = document.getElementById('mail-subject').value.trim() || 'Consegna router - {data}';
+  saveState();
+}
+function renderRecipients() {
+  const list = document.getElementById('recipients-list');
+  if (!list) return;
+  list.innerHTML = state.settings.recipients.map((r, i) => `
+    <div class="settings-row">
+      <input type="email" value="${r}" placeholder="ufficio@azienda.it"
+        oninput="state.settings.recipients[${i}]=this.value;saveState()">
+      ${state.settings.recipients.length > 1 ? `<button class="remove-btn" onclick="removeRecipient(${i})">×</button>` : ''}
+    </div>`).join('');
+}
+function addRecipient() { state.settings.recipients.push(''); saveState(); renderRecipients(); }
+function removeRecipient(i) { state.settings.recipients.splice(i,1); saveState(); renderRecipients(); }
+
+function clearAll() {
+  if (!confirm('Cancellare tutti i router e i modelli? Azione irreversibile.')) return;
+  state.routers = []; state.models = [];
+  saveState(); renderAll(); renderConsegna(); renderStorico(); renderSettingsModels();
+  showToast('Dati cancellati');
+}
+
+// ── TOAST ──────────────────────────────────────────────
+function showToast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type!=='success' ? ' '+type : '');
+  t.textContent = msg; c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ── BACKUP & RESTORE ───────────────────────────────────
+function backupData() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const dateStr = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+  const timeStr = `${pad(now.getHours())}${pad(now.getMinutes())}`;
+  const fileName = `BKPGestoreRitiri_${dateStr}_${timeStr}`;
+
+  const payload = {
+    _meta: {
+      app: APP_NAME,
+      version: APP_VERSION,
+      exportedAt: now.toISOString(),
+      routers: state.routers.length,
+      models: state.models.length,
+      settings: true
+    },
+    routers: state.routers,
+    models: state.models,
+    settings: state.settings
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${fileName}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+
+  const info = document.getElementById('backup-info');
+  info.style.display = 'block';
+  info.innerHTML = `&#10003; <b>${fileName}.json</b> &nbsp;&bull;&nbsp; ${state.routers.length} router &nbsp;&bull;&nbsp; ${state.models.length} modelli &nbsp;&bull;&nbsp; ${now.toLocaleString('it-IT')}`;
+  showToast('✅ Backup scaricato: ' + fileName + '.json');
+}
+
+function restoreData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const status = document.getElementById('restore-status');
+  status.textContent = '⏳ Caricamento...';
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      // Validate structure
+      if (!parsed.routers || !Array.isArray(parsed.routers)) throw new Error('File non valido: campo "routers" mancante');
+      if (!parsed.settings) throw new Error('File non valido: campo "settings" mancante');
+      const meta = parsed._meta || {};
+      const msg = `Trovati ${parsed.routers.length} router e ${(parsed.models||[]).length} modelli` +
+        (meta.exportedAt ? ` — backup del ${new Date(meta.exportedAt).toLocaleString('it-IT')}` : '');
+      if (!confirm(`Ripristinare i dati?
+
+${msg}
+
+I dati attuali verranno sostituiti.`)) {
+        status.textContent = '';
+        event.target.value = '';
+        return;
+      }
+      // Restore (exclude _meta)
+      state.routers = parsed.routers;
+      state.models = parsed.models || [];
+      state.settings = parsed.settings;
+      saveState();
+      renderAll();
+      loadSettingsUI();
+      renderSettingsModels();
+      status.style.color = 'var(--accent)';
+      status.textContent = `✓ ${parsed.routers.length} router ripristinati`;
+      showToast(`✅ Dati ripristinati — ${parsed.routers.length} router`);
+      const info = document.getElementById('backup-info');
+      info.style.display = 'block';
+      info.innerHTML = `✓ Ripristino completato &nbsp;•&nbsp; ${parsed.routers.length} router &nbsp;•&nbsp; ${(parsed.models||[]).length} modelli` +
+        (meta.exportedAt ? ` &nbsp;•&nbsp; Backup del ${new Date(meta.exportedAt).toLocaleString('it-IT')}` : '');
+    } catch(err) {
+      status.style.color = 'var(--danger)';
+      status.textContent = '✗ ' + err.message;
+      showToast('Errore: ' + err.message, 'error');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── INIT ───────────────────────────────────────────────
+loadState(); renderAll(); loadSettingsUI();
+setupPWA();
+
+// ── PWA SETUP ──────────────────────────────────────────
+function makeSvgIcon() {
+  // Router icon SVG in blue gradient
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#4f6ef7"/>
+        <stop offset="100%" stop-color="#06b6d4"/>
+      </linearGradient>
+    </defs>
+    <rect width="512" height="512" rx="112" fill="url(#g)"/>
+    <!-- router body -->
+    <rect x="96" y="220" width="320" height="100" rx="18" fill="white" opacity="0.95"/>
+    <!-- led dots -->
+    <circle cx="160" cy="270" r="14" fill="#4f6ef7"/>
+    <circle cx="210" cy="270" r="14" fill="#06b6d4" opacity="0.7"/>
+    <circle cx="260" cy="270" r="14" fill="#4f6ef7" opacity="0.5"/>
+    <!-- antenna left -->
+    <rect x="150" y="130" width="14" height="95" rx="7" fill="white" opacity="0.9"/>
+    <!-- antenna right -->
+    <rect x="350" y="110" width="14" height="115" rx="7" fill="white" opacity="0.9"/>
+    <!-- wifi arcs -->
+    <path d="M256 370 Q256 430 256 430" stroke="white" stroke-width="14" fill="none" stroke-linecap="round" opacity="0.8"/>
+    <path d="M210 355 Q256 400 302 355" stroke="white" stroke-width="12" fill="none" stroke-linecap="round" opacity="0.6"/>
+  </svg>`;
+}
+
+function setupPWA() {
+  // Build SVG icon as data URL
+  const svgIcon = makeSvgIcon();
+  const iconDataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgIcon)));
+
+  // Set apple-touch-icon
+  document.getElementById('pwa-icon-link').href = iconDataUrl;
+
+  // Build and inject manifest as blob URL
+  const manifest = {
+    name: 'Gestore Ritiri',
+    short_name: 'Ritiri',
+    description: 'Gestione ritiri e consegna router con PIN',
+    start_url: window.location.href,
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#f0f4ff',
+    theme_color: '#4f6ef7',
+    icons: [
+      { src: iconDataUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+      { src: iconDataUrl, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+
+  // Register external service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+
+  // ── Install prompt banner ─────────────────────────────
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallBanner();
+  });
+
+  function showInstallBanner() {
+    if (document.getElementById('install-banner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'install-banner';
+    banner.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;flex:1">
+        <span style="font-size:22px">📲</span>
+        <div>
+          <div style="font-weight:700;font-size:13px">Installa come app</div>
+          <div style="font-size:11px;opacity:0.8;margin-top:1px">Aggiungila alla schermata home</div>
+        </div>
+      </div>
+      <button id="install-yes" style="background:white;color:#4f6ef7;border:none;border-radius:8px;padding:9px 16px;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--mono)">Installa</button>
+      <button id="install-no" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:9px 12px;font-size:13px;cursor:pointer">✕</button>
+    `;
+    banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#4f6ef7,#06b6d4);color:white;padding:14px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 -4px 20px rgba(79,110,247,0.3);font-family:var(--sans)';
+    document.body.appendChild(banner);
+
+    document.getElementById('install-yes').onclick = async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        if (outcome === 'accepted') showToast('✅ App installata!');
+      }
+      banner.remove();
+    };
+    document.getElementById('install-no').onclick = () => {
+      banner.remove();
+      localStorage.setItem('pwa-dismissed', '1');
+    };
+  }
+
+  // iOS Safari: show manual instructions since it does not fire beforeinstallprompt
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone;
+  const dismissed = localStorage.getItem('pwa-dismissed');
+  if (isIos && !isStandalone && !dismissed) {
+    setTimeout(() => {
+      if (document.getElementById('install-banner')) return;
+      const banner = document.createElement('div');
+      banner.id = 'install-banner';
+      banner.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;flex:1">
+          <span style="font-size:22px">📲</span>
+          <div>
+            <div style="font-weight:700;font-size:13px">Installa su iPhone</div>
+            <div style="font-size:11px;opacity:0.9;margin-top:2px">Tocca <b>&#9633; Condividi</b> → <b>Aggiungi a Home</b></div>
+          </div>
+        </div>
+        <button id="install-no" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:9px 12px;font-size:14px;cursor:pointer">✕</button>
+      `;
+      banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#4f6ef7,#06b6d4);color:white;padding:14px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 -4px 20px rgba(79,110,247,0.3);font-family:var(--sans)';
+      document.body.appendChild(banner);
+      document.getElementById('install-no').onclick = () => {
+        banner.remove();
+        localStorage.setItem('pwa-dismissed', '1');
+      };
+    }, 2000);
+  }
+}
+</script>
+
+<footer style="border-top:1.5px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.05em;background:white;">
+  <span style="color:var(--border)">⚔</span>
+  <span>Created by <span style="color:var(--text);font-weight:600">Daniele Mariani</span> &amp; <span style="color:var(--accent);font-weight:600">Claude Strife Sonnet</span></span>
+  <span style="color:var(--border)">•</span>
+  <span>Gestore Ritiri <span style="color:var(--accent)">v1.1</span></span>
+</footer>
+
+</body>
+</html>
