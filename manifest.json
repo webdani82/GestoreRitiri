@@ -1,7 +1,8 @@
 {
   "name": "Gestore Ritiri",
-  "short_name": "Ritiri",
-  "description": "Gestione ritiri e consegna router con PIN",
+  "short_name": "Ritiri 1.3",
+  "description": "Gestione ritiri e consegna apparati con PIN",
+  "version": "1.3",
   "start_url": "router-manager.html",
   "scope": ".",
   "display": "standalone",
@@ -10,29 +11,9 @@
   "theme_color": "#4f6ef7",
   "lang": "it",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

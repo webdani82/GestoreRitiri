@@ -177,7 +177,7 @@
     <div class="logo">
       <div class="logo-dot"></div>
       GESTORE RITIRI
-      <span class="logo-version">v1.1</span>
+      <span class="logo-version">v1.3</span>
     </div>
   </div>
   <div class="nav-tabs">
@@ -189,6 +189,39 @@
 </header>
 
 <div id="toast-container"></div>
+
+
+<!-- EDIT MODAL -->
+<div class="overlay" id="edit-modal">
+  <div class="modal">
+    <h2>✏️ Modifica apparato</h2>
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px">
+      <div class="form-group">
+        <label>Seriale</label>
+        <input type="text" id="edit-serial" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>PIN</label>
+        <input type="text" id="edit-pin" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Marca / Modello</label>
+        <select id="edit-model"></select>
+      </div>
+      <div class="flag-group">
+        <label>Stato</label>
+        <label class="flag-toggle" id="edit-guasto-toggle">
+          <input type="checkbox" id="edit-guasto" onchange="updateEditGuastoToggle()">
+          ⚠ Guasto
+        </label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEditModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveEdit()">💾 Salva</button>
+    </div>
+  </div>
+</div>
 
 <!-- CONFIRM MODAL -->
 <div class="overlay" id="confirm-modal">
@@ -247,12 +280,14 @@
 
     <div class="section-header" style="margin-top:32px"><span class="section-title">In magazzino</span><div class="section-line"></div></div>
     <div class="card" style="padding:0;overflow:hidden">
-      <table class="router-table" id="ritiro-preview-table">
-        <thead><tr>
-          <th>Seriale</th><th>PIN</th><th>Modello</th><th>Stato</th><th>Ritirato il</th><th></th>
-        </tr></thead>
-        <tbody id="ritiro-preview-tbody"></tbody>
-      </table>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table class="router-table" id="ritiro-preview-table" style="min-width:520px">
+          <thead><tr>
+            <th>Seriale</th><th>PIN</th><th>Modello</th><th>Stato</th><th>Ritirato il</th><th></th>
+          </tr></thead>
+          <tbody id="ritiro-preview-tbody"></tbody>
+        </table>
+      </div>
       <div id="ritiro-preview-empty" class="empty-state"><div class="empty-icon">📦</div><p>Nessun apparato in magazzino</p></div>
     </div>
   </main>
@@ -263,13 +298,15 @@
   <main>
     <div class="section-header"><span class="section-title">Seleziona apparati da consegnare</span><div class="section-line"></div></div>
     <div class="card" style="padding:0;overflow:hidden">
-      <table class="router-table" id="consegna-table">
-        <thead><tr>
-          <th class="checkbox-cell"><input type="checkbox" id="select-all" onchange="toggleSelectAll()"></th>
-          <th>Seriale</th><th>PIN</th><th>Modello</th><th>Stato</th><th>Ritirato il</th>
-        </tr></thead>
-        <tbody id="consegna-tbody"></tbody>
-      </table>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table class="router-table" id="consegna-table" style="min-width:560px">
+          <thead><tr>
+            <th class="checkbox-cell"><input type="checkbox" id="select-all" onchange="toggleSelectAll()"></th>
+            <th>Seriale</th><th>PIN</th><th>Modello</th><th>Stato</th><th>Ritirato il</th><th></th>
+          </tr></thead>
+          <tbody id="consegna-tbody"></tbody>
+        </table>
+      </div>
       <div id="consegna-empty" class="empty-state" style="display:none"><div class="empty-icon">📭</div><p>Nessun apparato in magazzino</p></div>
     </div>
   </main>
@@ -366,7 +403,7 @@
 
 <script>
 const APP_NAME = "Gestore Ritiri";
-const APP_VERSION = "v1.1";
+const APP_VERSION = "v1.3";
 
 // ── STATE ──────────────────────────────────────────────
 let state = {
@@ -516,7 +553,10 @@ function renderRitiroPreview() {
       <td class="model-cell">${r.model}</td>
       <td>${r.guasto ? '<span class="guasto-badge">⚠ GUASTO</span>' : '<span style="color:var(--muted);font-size:11px;font-family:var(--mono)">OK</span>'}</td>
       <td style="color:var(--muted);font-size:12px">${r.pickedAt}</td>
-      <td><button class="btn btn-danger" style="padding:5px 12px;font-size:11px" onclick="deleteRouter(${r.id})">✕</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost" style="padding:5px 9px;font-size:13px;margin-right:4px" onclick="openEditModal(${r.id})" title="Modifica">✏️</button>
+        <button class="btn btn-danger" style="padding:5px 10px;font-size:11px" onclick="deleteRouter(${r.id})">✕</button>
+      </td>
     </tr>`).join('');
 }
 
@@ -537,6 +577,7 @@ function renderConsegna() {
       <td class="model-cell">${r.model}</td>
       <td>${r.guasto ? '<span class="guasto-badge">⚠ GUASTO</span>' : '<span style="color:var(--muted);font-size:11px;font-family:var(--mono)">OK</span>'}</td>
       <td style="color:var(--muted);font-size:12px">${r.pickedAt}</td>
+      <td><button class="btn btn-ghost" style="padding:5px 10px;font-size:13px" onclick="openEditModal(${r.id})" title="Modifica">✏️</button></td>
     </tr>`).join('');
   updateSelCount();
 }
@@ -869,6 +910,55 @@ I dati attuali verranno sostituiti.`)) {
   reader.readAsText(file);
 }
 
+
+// ── EDIT MODAL ─────────────────────────────────────────
+let editingId = null;
+function openEditModal(id) {
+  const r = state.routers.find(r => r.id === id);
+  if (!r) return;
+  editingId = id;
+  document.getElementById('edit-serial').value = r.serial;
+  document.getElementById('edit-pin').value = r.pin;
+  document.getElementById('edit-guasto').checked = r.guasto;
+  updateEditGuastoToggle();
+  // Popola select modelli
+  const sel = document.getElementById('edit-model');
+  sel.innerHTML = '';
+  getModelsSorted().forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.name; opt.textContent = m.name;
+    sel.appendChild(opt);
+  });
+  sel.value = r.model;
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+  editingId = null;
+}
+function updateEditGuastoToggle() {
+  const cb = document.getElementById('edit-guasto');
+  document.getElementById('edit-guasto-toggle').classList.toggle('active', cb.checked);
+}
+function saveEdit() {
+  const r = state.routers.find(r => r.id === editingId);
+  if (!r) return;
+  const serial = document.getElementById('edit-serial').value.trim();
+  const pin    = document.getElementById('edit-pin').value.trim();
+  const model  = document.getElementById('edit-model').value;
+  const guasto = document.getElementById('edit-guasto').checked;
+  if (!serial) return showToast('Inserisci il seriale', 'error');
+  if (!pin)    return showToast('Inserisci il PIN', 'error');
+  if (!model)  return showToast('Seleziona un modello', 'error');
+  // Controlla duplicato seriale (escludi se stesso)
+  if (state.routers.find(x => x.serial === serial && x.id !== editingId))
+    return showToast('Seriale già presente', 'error');
+  r.serial = serial; r.pin = pin; r.model = model; r.guasto = guasto;
+  saveState(); renderAll(); renderConsegna();
+  closeEditModal();
+  showToast('✅ Apparato aggiornato');
+}
+
 // ── INIT ───────────────────────────────────────────────
 loadState(); renderAll(); loadSettingsUI();
 setupPWA();
@@ -1001,7 +1091,7 @@ function setupPWA() {
   <span style="color:var(--border)">⚔</span>
   <span>Created by <span style="color:var(--text);font-weight:600">Daniele Mariani</span> &amp; <span style="color:var(--accent);font-weight:600">Claude Strife Sonnet</span></span>
   <span style="color:var(--border)">•</span>
-  <span>Gestore Ritiri <span style="color:var(--accent)">v1.1</span></span>
+  <span>Gestore Ritiri <span style="color:var(--accent)">v1.3</span></span>
 </footer>
 
 </body>

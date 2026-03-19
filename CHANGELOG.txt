@@ -1,0 +1,64 @@
+GESTORE RITIRI — CHANGELOG VERSIONI
+======================================================================
+
+----------------------------------------------------------------------
+[v1.3] - 19/03/2026
+----------------------------------------------------------------------
+MODIFICHE:
+  - Tabella Consegna: scroll orizzontale su mobile (min-width 560px)
+  - Tabella Ritiro (In magazzino): scroll orizzontale su mobile
+  - Aggiunto pulsante ✏️ modifica su ogni riga in Ritiro e Consegna
+    * Apre modal con campi: seriale, PIN, modello, stato guasto
+    * Salva immediatamente in localStorage
+
+----------------------------------------------------------------------
+[v1.2] - 11/03/2026
+----------------------------------------------------------------------
+MODIFICHE:
+  - Service worker riscritto completamente:
+    * Cache esplicita di tutti i file al primo avvio
+    * skipWaiting() corretto (dentro waitUntil)
+    * Cache-first strategy con fallback offline
+    * Pulizia automatica cache vecchie
+  - App funzionante in modalita' aereo / offline confermato OK
+  - Storico mobile: tabella scrollabile orizzontalmente
+    con banner "Scorri per vedere tutte le colonne"
+
+----------------------------------------------------------------------
+[v1.1] - 09/03/2026
+----------------------------------------------------------------------
+MODIFICHE:
+  - Rinominato "router" -> "apparato" ovunque nell'app e nelle mail
+  - Rimosso contatore (xN) dal dropdown di selezione modello
+  - Aggiunto campo LDV (Lettera di Vettura) opzionale nel modal
+    di consegna - salvato nello storico e incluso nella mail
+  - Storico: aggiunta barra di ricerca (seriale, modello, LDV)
+  - Storico: aggiunto pulsante export CSV (UTF-8, Excel-compatibile)
+  - Storico: aggiunto pulsante export PDF (stampa browser)
+  - Storico: ordine colonne -> Modello | Seriale | PIN | Stato |
+    LDV | Ritirato il | Consegnato il
+
+----------------------------------------------------------------------
+[v1.0] - 07/03/2026
+----------------------------------------------------------------------
+PRIMA RELEASE:
+  - App HTML single-file, PWA installabile su Android
+  - Tab RITIRO: inserimento seriale, PIN, modello, flag guasto
+  - Tab CONSEGNA: selezione con checkbox, apertura mailto:
+    con testo precompilato (Modello | Seriale | PIN | Stato)
+  - Tab STORICO: elenco consegne con date
+  - Tab IMPOSTAZIONI: destinatari mail, oggetto personalizzabile,
+    gestione modelli, backup/restore JSON
+  - Deploy su GitHub Pages + APK via PWABuilder
+  - Funzionamento offline tramite service worker
+  - Salvataggio dati in localStorage (chiave: routerMgr2)
+  - Creato da Daniele Mariani & Claude Strife Sonnet
+
+======================================================================
+COME AGGIORNARE LA VERSIONE
+======================================================================
+1. Modifica router-manager.html (APP_VERSION e badge v1.x)
+2. Aggiorna manifest.json -> "short_name" e "version"
+3. Aggiungi sezione [vX.Y] qui sopra con le modifiche
+4. Carica i file su GitHub -> il sito si aggiorna
+5. Rigenera APK con PWABuilder
